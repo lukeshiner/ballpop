@@ -15,29 +15,39 @@ func _physics_process(delta):
 	var original_velocity = velocity
 	var collision_info = move_and_collide(velocity * delta)
 	if collision_info:
-		soundPlayer.play("Bounce")
 		velocity = velocity.bounce(collision_info.normal)
 		if collision_info.collider.collision_layer == 8:
-			var sprite = collision_info.collider.get_node("Sprite")
-			var width = sprite.texture.get_size()[0] * sprite.scale.x
-			var distance = global_position.x - collision_info.collider.global_position.x
-			var angle_weight = inverse_lerp(-width/2, width/2, distance)
-			var rotate = lerp(-75, 75, angle_weight)
-			velocity = velocity.rotated(deg2rad(rotate))
-			var new_angle = rad2deg(velocity.angle())
-			if new_angle < UP_ANGLE - min_angle:
-				velocity = velocity.rotated(deg2rad(new_angle - new_angle + min_angle))
-			elif new_angle > UP_ANGLE + min_angle:
-				velocity = velocity.rotated(deg2rad(new_angle - new_angle - min_angle))
-			soundPlayer.play("Paddle")
+			collide_with_paddle(collision_info)
 		elif collision_info.collider.collision_layer == 4:
-			var tile_pos = collision_info.collider.world_to_map(
-				collision_info.position + original_velocity.normalized()
-			)
-			collision_info.collider.set_cell(tile_pos[0], tile_pos[1], -1)
-			soundPlayer.play("Break")
-		if abs(velocity.y) < 50:
-			velocity.y += 50 * sign(velocity.y)
+			collide_with_block(original_velocity, collision_info)
+		else:
+			soundPlayer.play("Bounce")
+		prevent_horizontal()
+
+func prevent_horizontal():
+	if abs(velocity.y) < 50:
+		velocity.y += 50 * sign(velocity.y)
+
+func collide_with_paddle(collision_info):
+	var sprite = collision_info.collider.get_node("Sprite")
+	var width = sprite.texture.get_size()[0] * sprite.scale.x
+	var distance = global_position.x - collision_info.collider.global_position.x
+	var angle_weight = inverse_lerp(-width/2, width/2, distance)
+	var rotate = lerp(-75, 75, angle_weight)
+	velocity = velocity.rotated(deg2rad(rotate))
+	var new_angle = rad2deg(velocity.angle())
+	if new_angle < UP_ANGLE - min_angle:
+		velocity = velocity.rotated(deg2rad(new_angle - new_angle + min_angle))
+	elif new_angle > UP_ANGLE + min_angle:
+		velocity = velocity.rotated(deg2rad(new_angle - new_angle - min_angle))
+	soundPlayer.play("Paddle")
+
+func collide_with_block(original_velocity, collision_info):
+	var tile_pos = collision_info.collider.world_to_map(
+		collision_info.position + original_velocity.normalized()
+	)
+	collision_info.collider.set_cell(tile_pos[0], tile_pos[1], -1)
+	soundPlayer.play("Break")
 
 func _on_Area2D_area_entered(area):
 	if area.collision_layer == 16:
