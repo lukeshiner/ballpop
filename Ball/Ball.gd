@@ -1,17 +1,42 @@
 extends KinematicBody2D
 
-var starting_velocity = Vector2(-150, -700);
+var starting_velocity = 700;
+var starting_angle = 35;
 var velocity = Vector2.ZERO
 onready var starting_position = global_position
 onready var respawnTimer = $RespawnTimer
 onready var soundPlayer = $SoundAnimationPlayer
+onready var paddle = get_tree().current_scene.get_node("YSort/Paddle")
 var min_angle = 80
 var UP_ANGLE = rad2deg(Vector2.UP.angle())
+
+enum {
+	WAIT,
+	MOVE,
+}
+
+var state = WAIT
 
 func _ready():
 	velocity = starting_velocity
 
 func _physics_process(delta):
+	if state == WAIT:
+		wait(delta)
+	else:
+		move(delta)
+
+func wait(_delta):
+	var paddle_position = paddle.global_position
+	global_position = Vector2(paddle_position.x, paddle_position.y - 20)
+
+func _input(event):
+	if event.is_action_released("StartBall") or event is InputEventScreenTouch:
+		if not event.pressed:
+			velocity = Vector2.UP.rotated(deg2rad(starting_angle)) * starting_velocity
+			state = MOVE
+
+func move(delta):
 	var original_velocity = velocity
 	var collision_info = move_and_collide(velocity * delta)
 	if collision_info:
@@ -57,5 +82,4 @@ func _on_Area2D_area_entered(area):
 
 
 func _on_RespawnTimer_timeout():
-	velocity = self.starting_velocity
-	global_position = self.starting_position
+	state = WAIT

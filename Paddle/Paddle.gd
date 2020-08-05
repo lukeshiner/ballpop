@@ -24,7 +24,7 @@ func _physics_process(_delta):
 	global_position.y = y_location
 
 
-func _unhandled_input(event):
+func _input(event):
 	if input_type == TOUCH and event is InputEvent.SCREEN_TOUCH:
 		input_type = TOUCH
 		touch_position = event.position
