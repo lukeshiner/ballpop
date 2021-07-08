@@ -161,4 +161,5 @@ tile_data = PoolIntArray( 65538, 0, 0, 65539, 0, 1, 65540, 0, 1, 65541, 0, 1, 65
 
 [node name="RestartTimer" type="Timer" parent="."]
 one_shot = true
+
 [connection signal="timeout" from="RestartTimer" to="." method="_on_RestartTimer_timeout"]
